@@ -1,7 +1,7 @@
 
 # refined-translate
 
-Easily translate between languages and adjust regional dialect
+Easily translate between languages and adjust regional dialect 
 
 ## References
 
