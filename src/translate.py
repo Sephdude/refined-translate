@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 # Load model
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
@@ -19,3 +20,4 @@ def translate(text, model, tokenizer):
     
     return translated_text
 
+    
