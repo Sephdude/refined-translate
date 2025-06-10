@@ -5,33 +5,25 @@ from transformers import TrainingArguments, AutoTokenizer, AutoModelForSeq2SeqLM
 import numpy as np
 import evaluate
 
-
 #model to be trained
 model = AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-en-es")
 
 
-#tokenize
+#load dataset
 dataset = load_dataset("Nicolas-BZRD/English_French_Webpages_Scraped_Translated")
 tokenizer = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-es")
-print(dataset.keys())
-#def tokenize(examples):
-#    return tokenizer(examples["en"], examples['fr'], padding="max_length", truncation=True)
 
+#tokenize
 def tokenize(examples):
-    # tokenize source sentences (English)
     inputs = tokenizer(examples["en"], max_length=128, truncation=True)
-    # tokenize target sentences (French)
     targets = tokenizer(examples["fr"], max_length=128, truncation=True)
-    # set labels for decoder - typical Marian fine-tuning
     inputs["labels"] = targets["input_ids"]
     return inputs
 
+dataset = dataset["train"].select(range(1000)).map(tokenize, batched=True) #adjust range to add more data
 
-
-
-dataset = dataset["train"].select(range(1000)).map(tokenize, batched=True)
+#collate data
 data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
-
 
 #set up compute metrics
 def compute_metrics(eval_pred):
@@ -45,6 +37,10 @@ def compute_metrics(eval_pred):
 training_args = TrainingArguments(
     output_dir="model_output", #output folder
     #eval_strategy="epoch"
+    learning_rate=1e-5,
+    per_device_train_batch_size=8,
+    num_train_epochs=1,
+    weight_decay=0.001,
 )
 
 #trainer
@@ -56,5 +52,5 @@ trainer = Trainer(
     compute_metrics=compute_metrics,
     data_collator=data_collator,
 )
-print('hi')
+
 trainer.train()

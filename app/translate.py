@@ -4,8 +4,9 @@
 # Load model
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-tokenizer = AutoTokenizer.from_pretrained("./franglish")
-model = AutoModelForSeq2SeqLM.from_pretrained("./franglish")
+#choose models here
+tokenizer = AutoTokenizer.from_pretrained("./models/model4")
+model = AutoModelForSeq2SeqLM.from_pretrained("./models/model4")
 
 #translate function
 def translate(text, model, tokenizer):
