@@ -4,8 +4,8 @@
 # Load model
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-tokenizer = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-es")
-model = AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-en-es")
+tokenizer = AutoTokenizer.from_pretrained("./franglish")
+model = AutoModelForSeq2SeqLM.from_pretrained("./franglish")
 
 #translate function
 def translate(text, model, tokenizer):
@@ -20,4 +20,4 @@ def translate(text, model, tokenizer):
     
     return translated_text
 
-    
+print(translate("t shades of amber and crimson, whispered gently in the breeze. A soft mist clung to the valleys, rising slowly as the sun warmed the earth. In the distance, a river meandered through the fields, its silver waters glistening like a winding ribbon of light.ple pleasures and took pride in their close-knit community. The land, the river, and the hills had been there long before them and would endure long after, holding the memories of generations past.", model, tokenizer))
