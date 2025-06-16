@@ -28,6 +28,19 @@ def create_file(data_dict):
     with open(file_path + file_name, "w") as json_file:
         json_file.write(json_text)
 
+#code for loading bar
+def load_bar(number, total):
+    progress = round((number / total) * 40)
+    bar = ""
+    for i in range(progress):
+        bar += '■'
+    for i in range(40-progress):
+        bar += '□'
+
+    print(bar)
+
+
+
 def format(text_file):
     
     data_dict = []
@@ -37,25 +50,23 @@ def format(text_file):
         data = file.read()
         
 
-    #remove single periods or extraneous symbols
-    #data = [sentence.strip() for sentence in data if sentence.strip() != '']
-    #put periods back into the end of each sentence
-    #data = [sentence + '.' for sentence in data]
-
     #use spacy to split the data into sentences and clean it up
     nlp = spacy.load("es_core_news_sm")
     nlp.add_pipe("sentencizer")
-    data = str(nlp(data))
-    print(data)
-    #turn into list
-    data = data.split('\n') 
-    
+    doc = nlp(data)
+
+
 
     #remove extraneous stuff
-    data = [sentence.strip() for sentence in data if sentence.strip() != ''] 
+    data = [sent.text.strip() for sent  in doc.sents if sent.text.strip() != ''] 
 
     #remove special characters and numbers
-    data = [re.sub('r[^a-zA-Z0-9]', '', sentence) for sentence in data]
+    data = [re.sub(r'[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ¡¿,.?! ]', '', sentence) for sentence in data]
+
+    #count number of data points
+    total_count = 0
+    for i in data:
+        total_count += 1
     
     #remove whitespace
     data = [sentence for sentence in data if sentence != '']
@@ -77,6 +88,7 @@ def format(text_file):
         data[i] = sentence
 
     try:
+        current_block = 0
         for sentence in data:
 
 
@@ -86,11 +98,26 @@ def format(text_file):
             #add block to json file
             block = {"es":sentence, "en":eng}
             data_dict.append(block)
+            
+            #indent to keep screen looking fresh
+            print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+            
+            print(block)
+            
+            #display load bar with total count and current block
+            load_bar(current_block, total_count)
+
+            #update current_block
+            current_block += 1
 
 
     finally:
+        print('exiting')
+
         #create file on close
         create_file(data_dict)
+
+        print("finished")
 
 
 
@@ -98,4 +125,4 @@ def format(text_file):
 
     
 
-format("data/resources-PR/slrPR.tsv")
+format("data/resources-PR/articles.txt")
