@@ -4,15 +4,15 @@
 # Load model
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-#choose models here
+tokenizer = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-es")
+model = AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-en-es")
+
+
+
 
 
 #translate function
 def translate(text, model, tokenizer):
-
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model)
-
     # Tokenize the text and prepare it for translation
     inputs = tokenizer(text, return_tensors="pt", padding=True)
 
@@ -24,5 +24,5 @@ def translate(text, model, tokenizer):
     
     return translated_text
 
-translate('hey', 'Helsinki-NLP/opus-mt-es-en', 'Helsinki-NLP/opus-mt-es-en')
 
+    

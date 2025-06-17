@@ -17,3 +17,4 @@ def new_line(text_file):
     print(data)
 
 new_line("resources-PR/articles.txt")    
+
