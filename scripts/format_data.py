@@ -5,6 +5,7 @@ import json
 import os
 import re
 import spacy
+import multiprocessing
 
 
 #scripts to transform data into a hugging face compatible datasets
@@ -41,35 +42,8 @@ def load_bar(number, total):
 
 
 
-def format(text_file):
+def format(data, translated_lst,num_complete,total):
     
-    data_dict = []
-
-    #split by periods
-    with open(text_file, 'r') as file:
-        data = file.read()
-        
-
-    #use spacy to split the data into sentences and clean it up
-    nlp = spacy.load("es_core_news_sm")
-    nlp.add_pipe("sentencizer")
-    doc = nlp(data)
-
-
-
-    #remove extraneous stuff
-    data = [sent.text.strip() for sent  in doc.sents if sent.text.strip() != ''] 
-
-    #remove special characters and numbers
-    data = [re.sub(r'[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ¡¿,.?! ]', '', sentence) for sentence in data]
-
-    #count number of data points
-    total_count = 0
-    for i in data:
-        total_count += 1
-    
-    #remove whitespace
-    data = [sentence for sentence in data if sentence != '']
     
     for i, sentence in enumerate(data):
         sentence = sentence.strip()
@@ -85,44 +59,87 @@ def format(text_file):
                 sentence += '.'
         
         #change string in list
-        data[i] = sentence
+    data[i] = sentence
+
+    for sentence in data:
+
+        #translate
+        eng = translate.translate(sentence, "Helsinki-NLP/opus-mt-es-en", "Helsinki-NLP/opus-mt-es-en")
+
+        #add block to main dictionary
+        block = {"es":sentence, "en":eng}
+        translated_lst.append(block)
+        
+        #indicate that a new sentence has been translated
+        num_complete.value += 1
+
+        #display loading bar
+        load_bar(int(num_complete.value),total)
+
+
+
+#format using multiprocessing
+def format_multi(text_file, process_count):
 
     try:
-        current_block = 0
-        for sentence in data:
+        with open(text_file, 'r') as file:
+            text = file.read()
 
 
-            #translate
-            eng = translate.translate(sentence, "Helsinki-NLP/opus-mt-es-en", "Helsinki-NLP/opus-mt-es-en")
-
-            #add block to json file
-            block = {"es":sentence, "en":eng}
-            data_dict.append(block)
-            
-            #indent to keep screen looking fresh
-            print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-            
-            print(block)
-            
-            #display load bar with total count and current block
-            load_bar(current_block, total_count)
-
-            #update current_block
-            current_block += 1
+        #use spacy to split the data into sentences and clean it up
+        nlp = spacy.load("es_core_news_sm")
+        nlp.add_pipe("sentencizer")
+        doc = nlp(text)
 
 
+
+        #remove extraneous stuff
+        data = [sent.text.strip() for sent  in doc.sents if sent.text.strip() != ''] 
+
+        #remove special characters and numbers
+        data = [re.sub(r'[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ¡¿,.?! ]', '', sentence) for sentence in data]
+
+        #remove whitespace
+        data = [sentence for sentence in data if sentence != '']
+
+        #find total number of sentences
+        sent_total = 0
+        for sent in data:
+            sent_total += 1
+        
+        #partition off pieces of text to be processed
+        data_dict  = {}
+        for num in range(process_count):
+            start = round((num/process_count) * sent_total)
+            print(start)
+            end = round(((num+1)/process_count) * sent_total)
+            data_dict[f"block_{num}"] = data[start:end]
+
+        
+        #create processes and pass in list
+        translated_lst = multiprocessing.Manager().list()
+        num_complete = multiprocessing.Manager().Value('i',0)
+        process_list = []
+        for key, data in data_dict.items():
+            process_list.append(multiprocessing.Process(target=format, args=(data, translated_lst, num_complete,sent_total)))
+        
+        #start processs
+        for process in process_list:
+            process.start()
+        #stop processs once done
+        for process in process_list:
+            process.join()
+    
+    #make file
     finally:
+
         print('exiting')
 
         #create file on close
-        create_file(data_dict)
+        create_file(list(translated_lst))
 
         print("finished")
-
-
-
-
-
-    
-
-format("data/resources-PR/articles.txt")
+#execution
+if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
+    format_multi("/home/joe/Documents/Resources PR/articles.txt", 8)
