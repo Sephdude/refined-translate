@@ -42,7 +42,7 @@ def load_bar(number, total):
 
 
 
-def format(data, translated_lst,num_complete,total):
+def format(data, translated_lst,num_complete, total, set):
     
     
     for i, sentence in enumerate(data):
@@ -67,7 +67,7 @@ def format(data, translated_lst,num_complete,total):
         eng = translate.translate(sentence, "Helsinki-NLP/opus-mt-es-en", "Helsinki-NLP/opus-mt-es-en")
 
         #add block to main dictionary
-        block = {"es":sentence, "en":eng}
+        block = {"set":set, "es":sentence, "en":eng}
         translated_lst.append(block)
         
         #indicate that a new sentence has been translated
@@ -79,7 +79,7 @@ def format(data, translated_lst,num_complete,total):
 
 
 #format using multiprocessing
-def format_multi(text_file, process_count):
+def format_multi(text_file, process_count, set):
 
     try:
         with open(text_file, 'r') as file:
@@ -121,7 +121,7 @@ def format_multi(text_file, process_count):
         num_complete = multiprocessing.Manager().Value('i',0)
         process_list = []
         for key, data in data_dict.items():
-            process_list.append(multiprocessing.Process(target=format, args=(data, translated_lst, num_complete,sent_total)))
+            process_list.append(multiprocessing.Process(target=format, args=(data, translated_lst, num_complete,sent_total, set)))
         
         #start processs
         for process in process_list:
@@ -142,4 +142,4 @@ def format_multi(text_file, process_count):
 #execution
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
-    format_multi("/home/joe/Documents/Resources PR/articles.txt", 8)
+    format_multi("/home/joe/Documents/Resources PR/set1.txt", 8, 1)
