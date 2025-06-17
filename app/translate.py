@@ -24,5 +24,4 @@ def translate(text, model, tokenizer):
     
     return translated_text
 
-translate('hey', 'Helsinki-NLP/opus-mt-es-en', 'Helsinki-NLP/opus-mt-es-en')
 

@@ -5,6 +5,7 @@ from transformers import TrainingArguments, AutoTokenizer, AutoModelForSeq2SeqLM
 import numpy as np
 import evaluate
 
+
 #model to be trained
 model = AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-en-es")
 
