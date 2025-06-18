@@ -1,7 +1,9 @@
 
 # refined-translate
+Translate english to Puerto Rican Spansih
 
-Easily translate between languages and adjust regional dialect 
+# Model Training
+The translator uses a fine-tuned version of the Helsinki-NLP OPUS-MT-EN-ES. The dataset created used contains data from some Puerto Rican blogs, crowed sourced audio transcriptions of Puerto Rican speech 
 
 ## References
 
