@@ -2,8 +2,12 @@
 # refined-translate
 Translate english to Puerto Rican Spansih
 
+# Dataset
+The dataset used can be found on Hugging Face. https://huggingface.co/datasets/Sephdude/esPR-en
+It contains Puerto Rican spanish text from various sources and automatically generated english translations using the Heslinki-OPUS-MT-ES-EN model.
+
 # Model Training
-The translator uses a fine-tuned version of the Helsinki-NLP OPUS-MT-EN-ES. The dataset created used contains data from some Puerto Rican blogs, crowed sourced audio transcriptions of Puerto Rican speech 
+The translator uses a fine-tuned version of the Helsinki-NLP OPUS-MT-EN-ES.
 
 ## References
 
