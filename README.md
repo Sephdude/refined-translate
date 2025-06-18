@@ -7,7 +7,7 @@ The dataset used can be found on Hugging Face. https://huggingface.co/datasets/S
 It contains Puerto Rican spanish text from various sources and automatically generated english translations using the Heslinki-OPUS-MT-ES-EN model.
 
 # Model Training
-The translator uses a fine-tuned version of the Helsinki-NLP OPUS-MT-EN-ES.
+The translator is a fine-tuned version of the Helsinki-NLP OPUS-MT-EN-ES trained on formal text, then seperately trained on colloquial speech to make the translations more casual.
 
 ## References
 
