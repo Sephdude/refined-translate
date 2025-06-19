@@ -142,4 +142,4 @@ def format_multi(text_file, process_count, set):
 #execution
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
-    format_multi("/home/joe/Documents/Resources PR/set1.txt", 8, 1)
+    format_multi("/home/joe/Documents/Resources PR/set2.txt", 8, 2)
