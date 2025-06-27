@@ -30,7 +30,7 @@ def create_file(data_dict):
         json_file.write(json_text)
 
 #code for loading bar
-def load_bar(number, total):
+def load_bar(number, total, block):
     progress = round((number / total) * 40)
     bar = ""
     for i in range(progress):
@@ -38,6 +38,8 @@ def load_bar(number, total):
     for i in range(40-progress):
         bar += '□'
 
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(block)
     print(bar)
 
 
@@ -74,7 +76,7 @@ def format(data, translated_lst,num_complete, total, set):
         num_complete.value += 1
 
         #display loading bar
-        load_bar(int(num_complete.value),total)
+        load_bar(int(num_complete.value),total, block)
 
 
 
@@ -89,6 +91,7 @@ def format_multi(text_file, process_count, set):
         #use spacy to split the data into sentences and clean it up
         nlp = spacy.load("es_core_news_sm")
         nlp.add_pipe("sentencizer")
+        nlp.max_length = 10000000
         doc = nlp(text)
 
 
@@ -142,4 +145,4 @@ def format_multi(text_file, process_count, set):
 #execution
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
-    format_multi("/home/joe/Documents/Resources PR/set2.txt", 8, 2)
+    format_multi("/home/joe/Repositories/refined-translate/data/resources-PR/set1.txt", 8, 1)

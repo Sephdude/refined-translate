@@ -96,7 +96,7 @@ def run_trainer(dataset, tokenizer, style, model):
     torch.cuda.empty_cache()
     gc.collect()
 
-    trainer.evaluate(dataset_test)
+    #trainer.evaluate(dataset_test)
 
     torch.cuda.empty_cache()
     gc.collect()
@@ -106,4 +106,4 @@ def run_trainer(dataset, tokenizer, style, model):
 
 #execution
 if __name__ == "__main__":
-    run_trainer("Sephdude/esPR-en", "Helsinki-NLP/opus-mt-en-es", "casual", "Helsinki-NLP/opus-mt-en-es")
+    run_trainer("Sephdude/esPR-en", "Helsinki-NLP/opus-mt-en-es", "formal", "Helsinki-NLP/opus-mt-en-es")
