@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 #load oscar dataset and remove unwanted data
+#the formatting for this dataset is different than many others on hugging Face, so it might be different if using a seperate dataset
 
 from modules import translate
 import json
@@ -11,7 +12,9 @@ from datasets import Dataset, load_dataset
 from urllib.parse import urlparse
 
 #filter out the Puerto Rican spanish from the dataset
-def filter(ds, puerto_rican_slang, start, end):
+#type of data lets you choose whether you want slang found in puerto_rican_slang or domain specific data
+#put type of data as "slang" or "domain"
+def filter(ds, puerto_rican_slang, start, end, type_of_data):
     
 
     #remove non text columns
@@ -30,21 +33,24 @@ def filter(ds, puerto_rican_slang, start, end):
     #extract the Puerto Rican sentences
     for example, metadata in zip(ds_current["text"], ds_current["metadata"]):
         for text_dict in example:
-            for word in puerto_rican_slang:
-                if word.lower() in text_dict["text"].lower():
+            if type_of_data == "slang":
+                for word in puerto_rican_slang:
+                    if word.lower() in text_dict["text"].lower():
+                        pr_slang.append(text_dict["text"])
+                        #continue so it doesn't make duplicates
+                        continue
+
+            if type_of_data == "domain":    
+                if pr_domain(metadata["url"].lower()):
                     pr_slang.append(text_dict["text"])
-                    #continue so it doesn't make duplicates
-                    continue
-                
-            if pr_domain(metadata["url"].lower()):
-                pr_slang.append(text_dict["text"])
-                print(f"Found Puerto Rican slang: {text_dict['text'], metadata['url']}")
+                    print(f"Found Puerto Rican slang: {text_dict['text'], metadata['url']}")
         
         translate.load_bar(x, len(ds_current), example)
         x += 1
     
     return pr_slang
 
+#check if a domain is from Puerto Rico
 def pr_domain(domain):
     parse = urlparse(domain)
     return parse.hostname.endswith(".pr")
@@ -56,8 +62,6 @@ if __name__ == "__main__":
             
         #load Spanish oscar dataset
         ds = load_dataset("oscar-corpus/mOSCAR", "spa_Latn")
-
-        #tokenizer = AutoTokenizer.from_pretrained(tokenizer)
 
         #slang words to filter in
         puerto_rican_slang = [ "perreo", "boricua",
@@ -131,7 +135,7 @@ if __name__ == "__main__":
         for i in range(100):
             start = (len(ds["train"]) // 22) * i
             end = start + (len(ds["train"]) // 22)
-            pr_slang.append(filter(ds, puerto_rican_slang, start, end))
+            pr_slang.append(filter(ds, puerto_rican_slang, start, end, "domain"))
 
 
     finally:
