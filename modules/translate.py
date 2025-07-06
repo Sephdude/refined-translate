@@ -22,3 +22,15 @@ def translate(text, model, tokenizer):
     
     return translated_text
 
+#code for loading bar
+def load_bar(number, total, block):
+    progress = round((number / total) * 40)
+    bar = ""
+    for i in range(progress):
+        bar += '■'
+    for i in range(40-progress):
+        bar += '□'
+
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(block)
+    print(bar)

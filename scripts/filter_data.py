@@ -34,18 +34,23 @@ def filter(ds, puerto_rican_slang, start, end, type_of_data):
     for example, metadata in zip(ds_current["text"], ds_current["metadata"]):
         for text_dict in example:
             if type_of_data == "slang":
+                #only append if there are two Puerto Rican slang words in the sample
+                match_found = 0
                 for word in puerto_rican_slang:
-                    if word.lower() in text_dict["text"].lower():
-                        pr_slang.append(text_dict["text"])
-                        #continue so it doesn't make duplicates
-                        continue
+                    pattern = r'\b' + re.escape(word.lower()) + r'\b'
+                    if re.search(pattern, text_dict["text"].lower()):
+                        match_found += 1
+                        if match_found >= 2:
+                            pr_slang.append(text_dict["text"])
+                            break
+                            
 
             if type_of_data == "domain":    
                 if pr_domain(metadata["url"].lower()):
                     pr_slang.append(text_dict["text"])
-                    print(f"Found Puerto Rican slang: {text_dict['text'], metadata['url']}")
         
         translate.load_bar(x, len(ds_current), example)
+        print("ctrl+c to stop")
         x += 1
     
     return pr_slang
@@ -64,83 +69,61 @@ if __name__ == "__main__":
         ds = load_dataset("oscar-corpus/mOSCAR", "spa_Latn")
 
         #slang words to filter in
-        puerto_rican_slang = [ "perreo", "boricua",
-            "wepa", "acho", "chacho", "diache", "boricua", "nene", "nena", "corillo", "cangri", "brutal", "mamey", "zafacón", "al garete", "jartera", "bregar", "breg", "janguear", "jangue", "gufear", "gufe", "pichear", "piche", "guagua", "bicho", "tiraera", "lengua suelta", "mano", "cantazo", "charro", "jíbaro", "feca", "taíno", "pichea", "jangueo", "bregando", "gufeo", "vacilón", "tostao", "tapón", "sanda", "rebuleo", "caco", "cafre", "lechón", "tirar", "mete mano", "bembé", "janguiar", "pelú", "tiradera", "pata abajo", "babilla", "gufiao", "zángano", "conuco", "maceta", "mamabicho", "bizcocho", "chillando goma", "encendío", "tripear", "mondongo", "algarete", "frontear", "motora", "nenes", "nenas", "cafrería", "melaza", "métele", "ñangotao", "ñemerson", "ñero", "pariseo", "paquetero", "pon", "ñoco", "ponte bruto", "rebulear", "rosca", "rocheliar", "sangana", "serrucho", "taparse", "tirar la mala", "tostón", "tumba eso", "vacilar", "vaso rojo", "yales", "zafao", "zángana", "zopenco", "abombao", "alcapurria", "aplatanao", "arroz con culo", "asicalao", "babear", "bacalao", "baratillo", "barriada", "bellaco", "bochinche", "brincacharcos", "bulto", "cabrón", "cantársela", "carecrimen", "chavos", "chichón", "chillin", "chiquistar", "chota", "cojines", "comelón", "concho", "craquear", "cuadrar", "darse el palo",
-            "dar una pela", "de show", "empatar", "enganchaera", "esbaratáo", "fajao", "farfullero", 
-            "fiestón", "gufiar", "gufiao", "huele bicho", "jacaroso", "jalcoroso", "la jodiste", 
-            "lambeojo", "le mete", "loser", "mameyera", "matao", "meterle bellaco", "mona", "morón", 
-            "no jodas", "pana", "papo", "pelabicho", "pelú", "por si las moscas", "quillao", 
-            "ratón de ferretería", "rayao", "remeneo", "retumba", "salpafuera", "sandunguero", 
-            "sin pena", "sopa'o", "tablazo", "te la echas", "te guillaste", "tirarte", "tirarse", 
-            "tirau", "tripeo", "tú sabes", "una nota", "vacilársela", "vamos al mambo", 
-            "vete al carajo", "vuélvete loco", "zafacón de gente", "¿Qué es la que hay?",
-            "¿Cómo está la cosa?", "Vamos a darse un chance.", "No me compliques la vida.",
-            "Eso está de show.", "Tira pa' acá.", "¿Dónde está el jangueo?", "Dale pa'lante.", "No te me achicopales.", "Estoy bien a gusto aquí.",
-            "Esto está al pelo.", "Ponte pa' lo que viene.", "Tranquilo, que aquí nadie se raja.", "Eso no tiene pierde.", "No hay problema, mano.",
-            "¿Quieres un chin?", "Voy a dar una vuelta.", "Me tiré una siesta.", "Esto es un vacilón.", "Estoy en la plena.", "¡Qué brutal!",
-            "Eso es de pinga.",
-            "Aquí se trabaja duro.",
-            "No me hables na' más.",
-            "Tú sabes cómo es la vuelta.",
-            "Esto se puso bueno.",
-            "Se me fue la mano.",
-            "Esto está en candela.",
-            "Voy a coger un chance.",
-            "Tú eres una nota.",
-            "No te me rajes ahora.",
-            "Me fui pa'l trono.",
-            "Echando pa'lante siempre.",
-            "Se me olvidó el chin.",
-            "Esto está bien encendío.",
-            "Eso está brutal.",
-            "¿Qué pasó, mi gente?",
-            "Vamos a janguear un rato.",
-            "Estoy cogiendo carrerilla.",
-            "No hay mal que dure cien años.",
-            "Esto está tirando pa'l piso.",
-            "Dame un break.",
-            "Estoy a punto de explotar.",
-            "Eso está al garete.",
-            "Aquí no se rinde nadie.",
-            "Estoy alante con eso.",
-            "Eso me tiene rayao.",
-            "Eso fue un tremendo perreo.",
-            "Me tienes de pana.",
-            "Dame un toque.",
-            "¿Qué es la que pasa?",
-            "Estoy en candela con esto.",
-            "Esto está a prueba de balas.",
-            "Echando un pie.",
-            "Eso está bien brutal.",
-            "La vida es una nota.",
-            "Estoy sin gota de energía.",
-            "Echando un pie por ahí.",
-            "Eso está para comérselo.",
-            "Tú tienes un talento brutal.",
-            "No te me pongas así.",
-            "Estoy cagao de la risa.",
-            "Eso está a otro nivel.",
-            "Dale con calma.",
-            "Aquí todo está chill.",
-            "Tú eres un vacilón.",
-            "Esto está para chuparse los dedos."
-
+        puerto_rican_slang = [
+        "Acho", "Wepa", "Chévere", "Nene", "Nena", "Boricua", "Janguear", "Guagua", "Corillo", "Chavo", "perreo", "perrea", "cabrón", "boricua", "Puerto Rico",
+        "Mofongo", "Brutal", "Pichea", "Fren", "Chinchorro", "Tato", "Nítido", "Bregar", "Al garete", "Jartera",
+        "Ñangotarse", "Zafacón", "Gufear", "Mandilón", "Jibaro", "Cangri", "Bregar", "Jíbaro", "Guillao", "Tiguere",
+        "Guilla", "Pichea", "Fula", "Cangri", "Chombo", "Coro", "Chavos", "Pato", "Vacilón", "Jíbaro",
+        "Gato", "Chota", "Chinchorreo", "To’", "Bregar", "Mamey", "Bayunco", "Naco", "Changuería", "La Jeva",
+        "Bregar", "Chulear", "Ponte las pilas", "Estoy ready", "Tirar la toalla", "Pegar la vuelta", "Estar pelao", "Montar un coro", "Estar jarto", "Janguear",
+        "En candela", "Hacer corillo", "Chévere", "La nota", "Arroz con habichuelas", "Me pica el bagre", "Chango", "La guagua", "Cotorra", "Chiviarse",
+        "En bola", "Dar la talla", "Pato", "Mabí", "Tiraera", "Tramar", "Guaguaeta", "Pichea eso", "Jeva", "Gufear",
+        "Estar pelao", "Güevón", "Montar un palo", "Ronear", "Arroz con dulce", "To’ guilla", "Chacho", "Mangó", "Mamey", "A fuego",
+        "Bregar con", "Pato", "Jartera", "Mambo", "Pichear", "Chongo", "Tigre", "Mangú", "Brutal", "Güira",
+        "Chavos", "Tumbao", "Nítido", "A la orden", "Chichaito", "Fula", "Jeva", "Bregar", "Chivear", "Vacilar",
+        "Al garete", "Pichear", "Pelea de gallos", "Coro", "Mamey", "Chavo", "Guillao", "Changa", "La brega", "Tiradera",
+        "Chota", "Ponerse las pilas", "Guaraguao", "Majar", "Arrecho", "Bregar", "La jeva", "Pelar", "Chiripi", "Gato",
+        "Acho", "Tiraera", "Pichea", "Zafacón", "Ñangotarse", "Pelea de calle", "Corillo", "To’ guilla", "Tigueraje", "Cangri",
+        "Brutal", "Chivo", "Jartera", "Mamey", "Nítido", "Fula", "Chévere", "Güevón", "Tumbao", "Pichar",
+        "Vacilar", "Rolo", "Bregar duro", "Chinchorrear", "Cangrim", "Brutalísimo", "Guay", "Mangú de plátano", "Chola", "Ñema",
+        "Zafaconear", "Matar un tigre", "Bregar con la vida", "Jeva buena", "Chamaquita", "Pato nuevo", "Mangú de guineo", "Guapo", "Vacilar duro", "Tiraera caliente",
+        "Chinchorreo nocturno", "Bregando", "Pichear eso ya", "Mandilón perdido", "Jangueo", "Fular", "Ñangote", "Pajilla", "Chilindrón", "Zafacón lleno",
+        "Brutalito", "Jíbaro de ciudad", "Pichea pana", "Fren en candela", "Tumbao duro", "Changa loca", "Mangú sucio", "Choto", "Corillo loco", "Ponte alante",
+        "Chicha", "Gufiado", "Mandilonazo", "Ñengo", "Chango pelúo", "Pelea callejera", "Chévere brutal", "Bregar a lo bestia", "Vacilón total", "Tiguerazo",
+        "Guillao loco", "Jartera mala", "Chavo duro", "Pichar duro", "Mamey de calle", "Ronear fuerte", "Brega dura", "Tiraera fuerte", "Chinchorro duro", "Pelea de gallos fuerte",
+        "Mangú con to'","Corillo fuerte", "Jeva loca", "Mandilón fuerte", "Ñangotazo", "Vacilar bien", "Brutal total", "Pato fuerte", "Jíbaro duro", "Chévere total",
+        "Guagua loca", "Chota fuerte", "Zafacón roto", "Bregar sin parar", "Tumbao fuerte", "Pichea duro", "Fren loco", "Chulo", "Mamey suave", "Bregando fuerte",
+        "Mandilón loco", "Chinchorreo fuerte", "Jangueo fuerte", "Vacilón brutal", "Pelea de calle dura", "Corillo brutal", "Ñangote fuerte", "Ronear duro", "Guillao fuerte", "Tigueraje brutal",
+        "Mangú duro", "Chacho loco", "Pichear fuerte", "Fula fuerte", "Jartera brutal", "Chavo loco", "Brega brutal", "Mandilón total", "Vacilar duro", "Zafacón fuerte",
+        "Chinchorro brutal", "Pato brutal", "Tumbao total", "Brutal loco", "Pelea callejera brutal", "Corillo total", "Jeva brutal", "Jangueo total", "Mandilón brutal", "Ñangotazo fuerte",
+        "Vacilar total", "Fren brutal", "Cholo", "Mangú brutal", "Pichear total", "Chavo total", "Bregar brutal", "Zafacón total", "Jíbaro total", "Tigueraje total",
+        "Guillao total", "Ronear total", "Bregar total", "Chacho brutal", "Pelea brutal", "Mandilón loco", "Vacilar brutal", "Jartera total", "Chinchorro total", "Pato total",
+        "Tumbao brutal", "Brutal total", "Pelea de gallos total", "Corillo loco", "Jeva total", "Jangueo brutal", "Mandilón total", "Ñangotazo brutal", "Vacilar total", "Fren total",
+        "Mangú total", "Pichear brutal", "Chavo brutal", "Bregar total", "Zafacón brutal", "Jíbaro brutal", "Tigueraje brutal", "Guillao brutal", "Ronear brutal", "Bregar brutal",
+        "Chacho total", "Pelea total", "Mandilón brutal", "Vacilar total", "Jartera brutal", "Chinchorro brutal", "Pato brutal", "Tumbao brutal", "Brutal brutal", "Pelea de gallos brutal",
+        "Corillo brutal", "Jeva brutal", "Jangueo brutal", "Mandilón brutal", "Ñangotazo brutal", "Vacilar brutal", "Fren brutal", "Mangú brutal", "Pichear brutal", "Chavo brutal",
+        "Bregar brutal", "Zafacón brutal", "Jíbaro brutal", "Tigueraje brutal", "Guillao brutal", "Ronear brutal", "Bregar brutal", "Chacho brutal", "Pelea brutal", "Mandilón brutal",
+        "Vacilar brutal", "Jartera brutal", "Chinchorro brutal", "Pato brutal", "Tumbao brutal", "Brutal brutal", "Pelea de gallos brutal", "Corillo brutal", "Jeva brutal", "Jangueo brutal"
         ]
+
 
 
         #the list of slang
         pr_slang = []
 
         #run filter in steps so it doesn't crash
-        for i in range(100):
+        for i in range(22):
             start = (len(ds["train"]) // 22) * i
             end = start + (len(ds["train"]) // 22)
-            pr_slang.append(filter(ds, puerto_rican_slang, start, end, "domain"))
+            pr_slang.append(filter(ds, puerto_rican_slang, start, end, "slang"))
+
+            print(f"Completed {i+1} of 22 steps")
 
 
     finally:
 
-        with open("data/data-output/filtered_data.txt", "w", encoding="utf-8") as f:
+        print("quitting")
+        with open(f"data/data-output/filtered_data.txt", "w", encoding="utf-8") as f:
             #make a text file with the filtered Puerto Rican slang examples
             for block in pr_slang:
                 for example in block:
