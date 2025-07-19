@@ -14,6 +14,8 @@ from urllib.parse import urlparse
 #filter out the Puerto Rican spanish from the dataset
 #type of data lets you choose whether you want slang found in puerto_rican_slang or domain specific data
 #put type of data as "slang" or "domain"
+
+
 def filter(ds, puerto_rican_slang, start, end, type_of_data):
     
 
@@ -25,11 +27,34 @@ def filter(ds, puerto_rican_slang, start, end, type_of_data):
     #create a puerto Rican Dataset and filter
     ds_current = ds["train"].select(range(start, end))
 
+    pr_slang = multiprocessing.Manager().list()
+    num_complete = multiprocessing.Manager().Value('i',0)
+    process_list = []
+    
+    ds_length = len(ds_current)
 
+    #split the dataset into chunks for multiprocessing
+    ds_current = [ds_current[i::4] for i in range(4)]
 
-    pr_slang = []
+    for block in ds_current:
+        process_list.append(multiprocessing.Process(target=multi_filter, args=(block, puerto_rican_slang, type_of_data, pr_slang, num_complete, ds_length)))
+    
+    #run processes and end
+    for process in process_list:
+        process.start()
+    for process in process_list:
+        process.join()
 
-    x = 0
+    return pr_slang
+
+#check if a domain is from Puerto Rico
+def pr_domain(domain):
+    parse = urlparse(domain)
+    return parse.hostname.endswith(".pr")
+
+def multi_filter(ds_current, puerto_rican_slang, type_of_data, pr_slang, num_complete, ds_length):
+    
+
     #extract the Puerto Rican sentences
     for example, metadata in zip(ds_current["text"], ds_current["metadata"]):
         for text_dict in example:
@@ -49,17 +74,20 @@ def filter(ds, puerto_rican_slang, start, end, type_of_data):
                 if pr_domain(metadata["url"].lower()):
                     pr_slang.append(text_dict["text"])
         
-        translate.load_bar(x, len(ds_current), example)
+        translate.load_bar(num_complete.value, ds_length, example)
         print("ctrl+c to stop")
-        x += 1
+        num_complete.value += 1
     
+
+    #run filter in steps so it doesn't crash
+    for i in range(22):
+        start = (len(ds["train"]) // 22) * i
+        end = start + (len(ds["train"]) // 22)
+        pr_slang.append(filter(ds, puerto_rican_slang, start, end, type_of_data))
+
+        print(f"Completed {i+1} of 22 steps")
+
     return pr_slang
-
-#check if a domain is from Puerto Rico
-def pr_domain(domain):
-    parse = urlparse(domain)
-    return parse.hostname.endswith(".pr")
-
 
 #execution
 if __name__ == "__main__":
