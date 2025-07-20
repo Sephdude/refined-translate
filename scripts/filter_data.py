@@ -94,7 +94,7 @@ if __name__ == "__main__":
     try:
             
         #load Spanish oscar dataset
-        ds = load_dataset("oscar-corpus/mOSCAR", "spa_Latn")
+        ds = load_dataset("oscar-corpus/mOSCAR", "spa_Latn", streaming=True)
 
         #slang words to filter in
         puerto_rican_slang = [
