@@ -57,14 +57,15 @@ def filter_words(block):
     #extract the Puerto Rican sentences
     for example, metadata in zip(block["text"], block["metadata"]):
         for text_dict in example:
-            print(text_dict)
             if data_type == "slang":
                 #only append if there are two Puerto Rican slang words in the sample
                 matched_words = set()
                 for word in puerto_rican_slang:
                     #strip accents and special characters from the text
-                    pattern = r'\b' + strip_accents(re.escape(word).replace(r'\ ', r'\s+') + r'\b')
+                    pattern = r'\b' + strip_accents(re.escape(word).replace(r'\ ', r'\s+')) + r'\b'
+
                     stripped_text = strip_accents(text_dict["text"])
+                    print(stripped_text)
                     
                     if re.search(pattern, stripped_text, re.IGNORECASE):
                         matched_words.add(word)
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     "Fren loco", "Chulo", "Mamey suave", "Bregando fuerte", "Mandilón loco", "Chinchorreo fuerte",
     "Jangueo fuerte", "Vacilón brutal", "Pelea de calle dura", "Corillo brutal", "Ñangote fuerte",
     "Ronear duro", "Guillao fuerte", "Tigueraje brutal", "Mangú duro", "Chacho loco", "Pichear fuerte",
-    "Fula fuerte", "Jartera brutal", "Chavo loco", "Brega brutal", "Mandilón total", "Zafacón fuerte",
+    "Fula fuerte", "Jartera brut    al", "Chavo loco", "Brega brutal", "Mandilón total", "Zafacón fuerte",
     "Chinchorro brutal", "Pato brutal", "Tumbao total", "Brutal loco", "Pelea callejera brutal",
     "Corillo total", "Jeva brutal", "Jangueo total", "Ñangotazo fuerte", "Vacilar total", "Fren brutal",
     "Cholo", "Mangú brutal", "Pichear total", "Chavo total", "Bregar brutal", "Zafacón total",
@@ -124,7 +125,6 @@ if __name__ == "__main__":
     "Pelea brutal", "Vacilar brutal", "Jartera total", "Chinchorro total", "Pato total", "Tumbao brutal",
     "Brutal brutal", "Pelea de gallos brutal"
 ]
-
         
         #sort the list so regex doesn't falsely identify words
         puerto_rican_slang = sorted(puerto_rican_slang, key=lambda x: -len(x))
