@@ -57,18 +57,30 @@ def filter_words(block):
     #extract the Puerto Rican sentences
     for example, metadata in zip(block["text"], block["metadata"]):
         for text_dict in example:
+            
+            if data_type == "domain":
+                #check if the domain is from Puerto Rico
+                if "domain" in metadata and pr_domain(metadata["domain"]):
+                    sentences_matched.append(text_dict["text"])
+                    continue
+            
             if data_type == "slang":
                 #only append if there are two Puerto Rican slang words in the sample
                 matched_words = set()
                 for word in puerto_rican_slang:
                     #strip accents and special characters from the text
-                    pattern = r'\b' + strip_accents(re.escape(word).replace(r'\ ', r'\s+')) + r'\b'
+                    pattern = r'\b' + strip_accents(re.escape(word)).replace(r'\ ', r'\s+') + r'\b'
+                    print(pattern)
 
+                    #strip accents from the text to avoid false positives
                     stripped_text = strip_accents(text_dict["text"])
                     print(stripped_text)
                     
+                    #check if the word is in the text if the same word has not been already found
                     if re.search(pattern, stripped_text, re.IGNORECASE):
-                        matched_words.add(word)
+                        if word not in matched_words:
+                            matched_words.add(word)
+                
                 if len(matched_words) >= 2:
                     sentences_matched.append(text_dict["text"])
 
@@ -78,7 +90,7 @@ def filter_words(block):
     if sentences_matched:
         with open("puerto_rican_slang.txt", "a") as f:
             for sentence in sentences_matched:
-                f.write(sentence + "\nhello hello\n")
+                f.write(sentence + "\n")
      
 
 
