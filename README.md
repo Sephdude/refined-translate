@@ -1,6 +1,6 @@
 
 # refined-translate
-Translate english to Puerto Rican Spanish
+Translate English to Puerto Rican Spanish
 
 # Dataset
 The dataset used can be found on Hugging Face. https://huggingface.co/datasets/Sephdude/esPR-en
