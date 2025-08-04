@@ -29,18 +29,7 @@ def create_file(data_dict):
     with open(file_path + file_name, "w") as json_file:
         json_file.write(json_text)
 
-#code for loading bar
-def load_bar(number, total, block):
-    progress = round((number / total) * 40)
-    bar = ""
-    for i in range(progress):
-        bar += '■'
-    for i in range(40-progress):
-        bar += '□'
 
-    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-    print(block)
-    print(bar)
 
 
 
@@ -76,7 +65,7 @@ def format(data, translated_lst,num_complete, total, set):
         num_complete.value += 1
 
         #display loading bar
-        load_bar(int(num_complete.value),total, block)
+        translate.load_bar(int(num_complete.value),total, block)
 
 
 
