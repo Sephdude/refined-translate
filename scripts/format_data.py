@@ -52,10 +52,13 @@ def format(data, translated_lst,num_complete, total, set):
         #change string in list
     data[i] = sentence
 
+    #preload model and tokenizer
+    model, tokenizer = translate.load_translator("Helsinki-NLP/opus-mt-es-en", "Helsinki-NLP/opus-mt-es-en")
+
     for sentence in data:
 
         #translate
-        eng = translate.translate(sentence, "Helsinki-NLP/opus-mt-es-en", "Helsinki-NLP/opus-mt-es-en")
+        eng = translate.translate_preloaded(sentence, model, tokenizer)
 
         #add block to main dictionary
         block = {"set":set, "es":sentence, "en":eng}
