@@ -20,13 +20,13 @@ def load_translator(model, tokenizer):
 def translate_preloaded(text, preloaded_model, preloaded_tokenizer):
 
     # Tokenize the text and prepare it for translation
-    inputs = tokenizer(text, return_tensors="pt", padding=True)
+    inputs = preloaded_tokenizer(text, return_tensors="pt", padding=True, max_length=512, truncation=True)
 
     # Perform the translation
-    translated = model.generate(**inputs)
+    translated = preloaded_model.generate(**inputs)
 
     # Decode the translated tokens back into text
-    translated_text = tokenizer.decode(translated[0], skip_special_tokens=True)
+    translated_text = preloaded_tokenizer.decode(translated[0], skip_special_tokens=True)
     
     return translated_text
 

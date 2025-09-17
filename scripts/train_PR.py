@@ -8,7 +8,7 @@ import os
 import gc
 
 
-def run_trainer(dataset, tokenizer, style, model):
+def run_trainer(dataset, tokenizer, model):
     #configure memory
     os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:128"
 
@@ -17,19 +17,14 @@ def run_trainer(dataset, tokenizer, style, model):
 
 
     #model to be trained
-    model = AutoModelForSeq2SeqLM.from_pretrained(model)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model).to("cuda")
 
     #make sure its running on the gpu
 
     print(next(model.parameters()).device)
     #load dataset
-    dataset = load_dataset(dataset)
+    dataset = load_dataset("json", data_files="hf://datasets/Sephdude/esPR_en/dataset.json")
     tokenizer = AutoTokenizer.from_pretrained(tokenizer)
-
-    dataset = dataset.filter(lambda x: x["style"] == style)
-
-    #filter out the style markers
-    dataset = dataset.remove_columns("style")
 
 
     #tokenize
@@ -46,11 +41,14 @@ def run_trainer(dataset, tokenizer, style, model):
         inputs["labels"] = labels
         return inputs
 
-    #put in two datasets, one for more formal writing, two for common phrases
-    dataset_train = dataset["train"].map(tokenize, batched=True, remove_columns=["es", "en"])
-    dataset_valid = dataset["validation"].map(tokenize, batched=True, remove_columns=["es", "en"])
-    dataset_test = dataset["test"].map(tokenize, batched=True, remove_columns=["es", "en"])
 
+    # Example: split into train/val/test
+    train_testvalid = dataset["train"].train_test_split(test_size=0.2, seed=42)
+    test_valid = train_testvalid["test"].train_test_split(test_size=0.5, seed=42)
+
+    dataset_train = train_testvalid["train"].map(tokenize, batched=True, remove_columns=["en", "es"])
+    dataset_valid = test_valid["train"].map(tokenize, batched=True, remove_columns=["en", "es"])
+    dataset_test  = test_valid["test"].map(tokenize, batched=True, remove_columns=["en", "es"])
 
     #collate data
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
@@ -73,7 +71,7 @@ def run_trainer(dataset, tokenizer, style, model):
         eval_accumulation_steps=2,
         num_train_epochs=3,
         weight_decay=0.001,
-        remove_unused_columns=True,
+        remove_unused_columns=False,
         fp16=True,
     )
 
@@ -91,8 +89,10 @@ def run_trainer(dataset, tokenizer, style, model):
     trainer.train()
     torch.cuda.empty_cache() #empty cache so dont crash
     gc.collect()
-    trainer.evaluate()#eval_dataset=dataset_valid.select(range(100),))
-
+    #test performance
+    test = trainer.evaluate(eval_dataset=dataset_test)
+    print(test)
+    
     torch.cuda.empty_cache()
     gc.collect()
 
@@ -106,4 +106,4 @@ def run_trainer(dataset, tokenizer, style, model):
 
 #execution
 if __name__ == "__main__":
-    run_trainer("Sephdude/esPR-en", "Helsinki-NLP/opus-mt-en-es", "formal", "Helsinki-NLP/opus-mt-en-es")
+    run_trainer("Sephdude/esPR-en", "Helsinki-NLP/opus-mt-en-es", "Helsinki-NLP/opus-mt-en-es")

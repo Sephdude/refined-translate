@@ -83,7 +83,7 @@ def format_multi(text_file, process_count, set):
         #use spacy to split the data into sentences and clean it up
         nlp = spacy.load("es_core_news_sm")
         nlp.add_pipe("sentencizer")
-        nlp.max_length = 10000000
+        nlp.max_length = 100000000
         doc = nlp(text)
 
 
@@ -137,4 +137,5 @@ def format_multi(text_file, process_count, set):
 #execution
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
-    format_multi("/home/joe/Repositories/refined-translate/data/resources-PR/set1.txt", 8, 1)
+    #enter your text file location here
+    format_multi("/home/joe/Repositories/refined-translate/hello.txt", 8, 1)

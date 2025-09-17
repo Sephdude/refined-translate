@@ -4,14 +4,15 @@
 #the formatting for this dataset is different than many others on hugging Face, so it might be different if using a seperate dataset
 
 from modules import translate
+from modules import text_manipulation
 import json
 import os
 import re
-import unicodedata
 from multiprocessing import Pool, Lock, Manager
 from datasets import Dataset, load_dataset
 from urllib.parse import urlparse
 from itertools import islice
+from tqdm import tqdm
 
 #filter out the Puerto Rican spanish from the dataset
 #type of data lets you choose whether you want slang found in puerto_rican_slang or domain specific data
@@ -41,10 +42,7 @@ def dataset_format(ds):
 
     return ds
 
-#strip accents to avoid false positives
-def strip_accents(text):
-    text = unicodedata.normalize('NFKD', text)
-    return ''.join(c for c in text if unicodedata.category(c) != 'Mn')
+
 
 #filter through individual blocks of data
 def filter_words(block):
@@ -55,10 +53,10 @@ def filter_words(block):
 
 
     #extract the Puerto Rican sentences
-    for example, metadata in zip(block["text"], block["metadata"]):
+    for example, metadata in tqdm(zip(block["text"], block["metadata"]), total=len(block["text"])):
 
         #strip accents and special characters from the text
-        clean_slang = [strip_accents(word.lower()) for word in puerto_rican_slang]
+        clean_slang = [text_manipulation.strip_accents(word.lower()) for word in puerto_rican_slang]
 
                     
         for text_dict in example:
@@ -74,14 +72,17 @@ def filter_words(block):
                 matched_words = set()
 
                 #strip accents from the text to avoid false positives
-                stripped_text = strip_accents(text_dict["text"]).lower()
+                stripped_text = text_manipulation.strip_accents(text_dict["text"]).lower()
 
-                for word in clean_slang:    
-                    #check if the word is in the text if the same word has not been already found
-                    if word in stripped_text:
-                        if word not in matched_words:
-                            matched_words.add(word)
+                #for word in clean_slang:    
+                   #check if the word is in the text if the same word has not been already found
+                #    if word in stripped_text:
+                #        if word not in matched_words:
+                #            matched_words.add(word)
                 
+                matches = set(stripped_text.lower().split())
+                matched_words = matches & set(clean_slang)
+
                 if len(matched_words) >= 2:
                     sentences_matched.append(text_dict["text"])
 
@@ -98,85 +99,48 @@ def filter_words(block):
 #execution
 if __name__ == "__main__":
     #load Spanish oscar dataset
-        ds = load_dataset("oscar-corpus/mOSCAR", "spa_Latn", streaming=True)
+    ds = load_dataset("oscar-corpus/mOSCAR", "spa_Latn", streaming=True)
 
-        #slang words to filter in
-        puerto_rican_slang = [
-    "Acho", "Wepa", "Chévere", "Nene", "Nena", "Boricua", "Janguear", "Guagua", "Corillo", "Chavo",
-    "perreo", "perrea", "cabrón", "Puerto Rico", "Mofongo", "Brutal", "Pichea", "Fren", "Chinchorro",
-    "Tato", "Nítido", "Bregar", "Al garete", "Jartera", "Ñangotarse", "Zafacón", "Gufear", "Mandilón",
-    "Jibaro", "Cangri", "Jíbaro", "Guillao", "Tiguere", "Guilla", "Chombo", "Coro", "Chavos", "Pato",
-    "Vacilón", "Chota", "Chinchorreo", "To’", "Mamey", "Bayunco", "Naco", "Changuería",
-    "La Jeva", "Chulear", "Ponte las pilas", "Estoy ready", "Tirar la toalla", "Pegar la vuelta",
-    "Estar pelao", "Montar un coro", "Estar jarto", "En candela", "Hacer corillo", "La nota",
-    "Arroz con habichuelas", "Me pica el bagre", "Chango", "La guagua", "Cotorra", "Chiviarse",
-    "En bola", "Dar la talla", "Mabí", "Tiraera", "Tramar", "Guaguaeta", "Pichea eso", "Jeva",
-    "Güevón", "Montar un palo", "Ronear", "Arroz con dulce", "To’ guilla", "Chacho", "Mangó", "A fuego",
-    "Bregar con", "Mambo", "Pichear", "Chongo", "Tigre", "Mangú", "Güira", "Tumbao", "A la orden",
-    "Chichaito", "Chivear", "Vacilar", "Pelea de gallos", "Changa", "La brega", "Tiradera", "Ponerse las pilas",
-    "Guaraguao", "Majar", "Arrecho", "Pelar", "Chiripi", "Pelea de calle", "Tigueraje", "Chivo", "Pichar",
-    "Rolo", "Bregar duro", "Chinchorrear", "Cangrim", "Brutalísimo", "Guay", "Mangú de plátano", "Chola",
-    "Ñema", "Zafaconear", "Matar un tigre", "Bregar con la vida", "Jeva buena", "Chamaquita", "Pato nuevo",
-    "Mangú de guineo", "Guapo", "Vacilar duro", "Tiraera caliente", "Chinchorreo nocturno", "Bregando",
-    "Pichear eso ya", "Mandilón perdido", "Jangueo", "Fular", "Ñangote", "Pajilla", "Chilindrón",
-    "Zafacón lleno", "Brutalito", "Jíbaro de ciudad", "Pichea pana", "Fren en candela", "Tumbao duro",
-    "Changa loca", "Mangú sucio", "Choto", "Corillo loco", "Ponte alante", "Chicha", "Gufiado",
-    "Mandilonazo", "Ñengo", "Chango pelúo", "Pelea callejera", "Chévere brutal", "Bregar a lo bestia",
-    "Vacilón total", "Tiguerazo", "Guillao loco", "Jartera mala", "Chavo duro", "Pichar duro",
-    "Mamey de calle", "Ronear fuerte", "Brega dura", "Tiraera fuerte", "Chinchorro duro",
-    "Pelea de gallos fuerte", "Mangú con to'", "Corillo fuerte", "Jeva loca", "Mandilón fuerte",
-    "Ñangotazo", "Vacilar bien", "Brutal total", "Pato fuerte", "Jíbaro duro", "Chévere total",
-    "Guagua loca", "Chota fuerte", "Zafacón roto", "Bregar sin parar", "Tumbao fuerte", "Pichea duro",
-    "Fren loco", "Chulo", "Mamey suave", "Bregando fuerte", "Mandilón loco", "Chinchorreo fuerte",
-    "Jangueo fuerte", "Vacilón brutal", "Pelea de calle dura", "Corillo brutal", "Ñangote fuerte",
-    "Ronear duro", "Guillao fuerte", "Tigueraje brutal", "Mangú duro", "Chacho loco", "Pichear fuerte",
-    "Fula fuerte", "Jartera brut    al", "Chavo loco", "Brega brutal", "Mandilón total", "Zafacón fuerte",
-    "Chinchorro brutal", "Pato brutal", "Tumbao total", "Brutal loco", "Pelea callejera brutal",
-    "Corillo total", "Jeva brutal", "Jangueo total", "Ñangotazo fuerte", "Vacilar total", "Fren brutal",
-    "Cholo", "Mangú brutal", "Pichear total", "Chavo total", "Bregar brutal", "Zafacón total",
-    "Jíbaro total", "Tigueraje total", "Guillao total", "Ronear total", "Bregar total", "Chacho brutal",
-    "Pelea brutal", "Vacilar brutal", "Jartera total", "Chinchorro total", "Pato total", "Tumbao brutal",
-    "Brutal brutal", "Pelea de gallos brutal"
-]
+    puerto_rican_slang = text_manipulation.puerto_rican_slang
+    
+    #sort the list so regex doesn't falsely identify words
+    puerto_rican_slang = sorted(puerto_rican_slang, key=lambda x: -len(x))
+    
+    #set up lock  so the txt file is not corrupted
+    manager = Manager()
+    lock = manager.Lock()
+
+    batch_size = 50000  # Size of each batch
+    dataset_size = 20600000 # Approximate size of the dataset
+
+    process_count = os.cpu_count()  # Number of processes to use
+
+    #set this to change the type of data to filter
+    data_type = "slang"
+    
+    #track how many batches have been done
+    batches_complete = 0
+
+    #format the dataset
+    formatted_ds = dataset_format(ds["train"])
+
+
+    #chunk up batches and filter in multiprocessing
+    for batch in make_batch(formatted_ds, batch_size):
         
-        #sort the list so regex doesn't falsely identify words
-        puerto_rican_slang = sorted(puerto_rican_slang, key=lambda x: -len(x))
-        
-        #set up lock  so the txt file is not corrupted
-        manager = Manager()
-        lock = manager.Lock()
+        #load bar
+        translate.load_bar(batches_complete * batch_size, dataset_size, "Batches complete: \n")
 
-        batch_size = 50000  # Size of each batch
-        dataset_size = 20600000 # Approximate size of the dataset
-
-        process_count = os.cpu_count()  # Number of processes to use
-
-        #set this to change the type of data to filter
-        data_type = "slang"
-        
-        #track how many batches have been done
-        batches_complete = 0
-
-        #format the dataset
-        formatted_ds = dataset_format(ds["train"])
+        #set up filter arguments
+        args = []
+        for i in range(process_count):
+            start = i * (len(batch) // process_count)
+            end = start + (len(batch) // process_count)
+            args.append(batch.select(range(start, end)))
 
 
-        #chunk up batches and filter in multiprocessing
-        for batch in make_batch(formatted_ds, batch_size):
-            
-            #load bar
-            translate.load_bar(batches_complete * batch_size, dataset_size, "Batches complete: \n")
+        #set up multiprocessing pool
+        with Pool(process_count) as pool:
+                pool.map(filter_words, args)
 
-            #set up filter arguments
-            args = []
-            for i in range(process_count):
-                start = i * (len(batch) // process_count)
-                end = start + (len(batch) // process_count)
-                args.append(batch.select(range(start, end)))
-
-
-            #set up multiprocessing pool
-            with Pool(process_count) as pool:
-                    pool.map(filter_words, args)
-
-            batches_complete += 1
+        batches_complete += 1

@@ -10,6 +10,7 @@ import re
 import multiprocessing
 from datasets import Dataset, load_dataset
 from urllib.parse import urlparse
+from itertools import islice
 
 #filter out the Puerto Rican spanish from the dataset
 #type of data lets you choose whether you want slang found in puerto_rican_slang or domain specific data
@@ -51,6 +52,15 @@ def filter(ds, puerto_rican_slang, start, end, type_of_data):
 def pr_domain(domain):
     parse = urlparse(domain)
     return parse.hostname.endswith(".pr")
+
+def make_batch(streaming_set, size):
+    """Batch data into chunks of size."""
+    it = iter(streaming_set)
+    while True:
+        batch = list(islice(it, size))
+        if not batch:
+            break
+        yield batch
 
 def multi_filter(ds_current, puerto_rican_slang, type_of_data, pr_slang, num_complete, ds_length):
     
