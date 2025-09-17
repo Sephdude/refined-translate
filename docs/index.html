@@ -1,16 +1,27 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Title</title>
+  <meta charset="UTF-8">
+  <title>refined-translate</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header>
+    <h1>English → Puerto Rican Spanish Translator</h1>
+    <p id="description">Fine-tuned version of the MarianMT es-en translation model, trained on Puerto Rican Spanish to English translation examples.</p>
+  </header>
 
-    <h1>refined-translate</h1>
-    <h3>English to Puerto Rican Spanish translator</h3>
-    <p>This is a fine-tuned version of the MarianMT es-en model, trained on Puerto Rican Spanish to english translations.</p>
+  <main>
+    <label for="englishText">Enter English text:</label>
+    <input type="text" id="englishText" placeholder="Type here...">
+    <button onclick="translate()">Translate</button>
+
+    <div id="result">
+      <h2>Translation:</h2>
+      <p id="spanishText"></p>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>
-
-
-
